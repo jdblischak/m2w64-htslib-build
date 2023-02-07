@@ -1,0 +1,68 @@
+name: Build a statically linked htslib.dll under msys2
+on:
+  push:
+    paths:
+      - '.github/workflows/msys2-htslib-build.yml'
+      - 'patches/**'
+      - 'scripts/**'
+  workflow_dispatch:
+env:
+  PACKAGE_VERSION: 1.15.1
+  LIBHTS_SOVERSION: 3
+  RELEASE_VERSION: 0 # equivalent to conda build number
+jobs:
+  build:
+    name: build
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: ci
+      - uses: msys2/setup-msys2@v2
+        with:
+          update: true
+      - name: System information
+        run: |
+          echo $MSYSTEM
+          uname -a
+          echo $PATH
+      - name: Install dependencies with pacman
+        run: bash ci/scripts/install-dependencies.sh
+      - name: Download and extract source htslib tarball
+        run: bash ci/scripts/download-htslib.sh
+      - name: Build
+        run: bash ci/scripts/build-htslib.sh ci/patches
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Check linking
+        shell: powershell
+        run: |
+          dumpbin /imports hts-${env:LIBHTS_SOVERSION}.dll | findstr /i dll
+      - name: Bundle
+        run: bash ci/scripts/bundle-htslib.sh
+      - name: Upload release tarball as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: m2w64-htslib-${{ env.PACKAGE_VERSION }}-${{ env.RELEASE_VERSION }}.tar.gz
+          path: m2w64-htslib-${{ env.PACKAGE_VERSION }}-${{ env.RELEASE_VERSION }}.tar.gz
+          retention-days: 14
+  release:
+    name: release
+    needs: build
+    if: github.repository == 'TileDB-Inc/m2w64-htslib-build' &&  github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download release tarball artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: m2w64-htslib-${{ env.PACKAGE_VERSION }}-${{ env.RELEASE_VERSION }}.tar.gz
+      - run: ls -lhR
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/release.sh

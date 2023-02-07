@@ -5,6 +5,11 @@ on:
       - '.github/workflows/msys2-htslib-build.yml'
       - 'patches/**'
       - 'scripts/**'
+  pull_request:
+    paths:
+      - '.github/workflows/msys2-htslib-build.yml'
+      - 'patches/**'
+      - 'scripts/**'
   workflow_dispatch:
 env:
   PACKAGE_VERSION: 1.15.1

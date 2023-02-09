@@ -1,6 +1,6 @@
 # m2w64-htslib-build
 
-The workflow [msys2-htslib-build.yml][] builds a statically linked htslib.dll
+The workflow [msys2-htslib-build.yml][] builds a statically linked[^explanation] htslib.dll
 under msys2. See the [releases][] to download the tarball. To build a different
 version of htslib, update the env var `PACKAGE_VERSION`. To build an updated
 release of an existing version, update the env var `RELEASE_VERSION`. Also, make
@@ -20,3 +20,6 @@ under msys2).
 [TileDB-Inc/m2w64-htslib-feedstock]: https://github.com/TileDB-Inc/m2w64-htslib-feedstock
 [TileDB-Inc/tiledb-vcf-feedstock]: https://github.com/TileDB-Inc/tiledb-vcf-feedstock
 [TileDB-Inc/TileDB-VCF]: https://github.com/TileDB-Inc/TileDB-VCF
+
+[^explanation]: 'statically linked' here implies static linkage to all needed
+msys2 libraries that are not referencing .DLLs that are provided by Windows
